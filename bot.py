@@ -89,13 +89,31 @@ RECRUITMENT:
   - Between matches you can recruit new executive cards.
   - Prefer cards that fill skill gaps in your existing collection.
 
+BATTLE PHASE — HOW IT WORKS (like Pokémon type matchups):
+  - Each battle round presents a CHALLENGE ATTRIBUTE (e.g. "Tech", "Finance",
+    "Leadership", "Marketing", "Operations", "Innovation", "Strategy",
+    "Negotiation", "HR", "Sales").
+  - From your team of 5, you SELECT EXACTLY 3 CARDS to send into that battle.
+  - The 3 cards you pick compete against the opponent's 3 cards.
+  - Higher combined (or individual) power in the CHALLENGE ATTRIBUTE wins.
+  - STRATEGY: always pick the 3 cards that have the highest value in the
+    specific attribute being challenged. Ignore overall power — only the
+    relevant attribute matters for this round.
+  - If two cards tie on the challenge attribute, prefer the higher-rarity one
+    as a tiebreaker (it likely has higher secondary stats).
+  - You cannot use the same card in consecutive rounds (if that rule applies —
+    adapt once you can see the UI).
+
 === STRATEGIC PRIORITIES ===
-1. TEAM SELECTION: Maximise skill diversity — cover as many of the 10
-   business strength categories as possible with your 5 picks.
-2. Prioritise higher-rarity cards; they usually have higher base power.
-3. In combat, play the card that wins the current contested category.
-4. Preserve Legendary/Epic cards for late-game decisive rounds.
-5. In recruitment, target cards that patch your weakest categories.
+1. BATTLE SELECTION: Identify the challenge attribute, then rank your 5 cards
+   by that attribute's value and send the top 3. This is the most important
+   decision in the game.
+2. TEAM SELECTION: Pick 5 cards that cover all 10 attribute categories so you
+   are never completely outmatched on any challenge.
+3. Prefer higher-rarity cards when attribute values are equal.
+4. Save Legendary/Epic cards — if you can choose which to hold back, keep
+   your best card in reserve for the hardest challenge.
+5. In recruitment, target cards that fill your weakest attribute categories.
 """
 
 # ---------------------------------------------------------------------------
@@ -164,15 +182,18 @@ JSON schema:
 team_management | recruitment | battle | card_play | result | loading | \
 waiting_for_opponent | unknown>",
   "game_state_summary": "<1–3 sentence description of what you see>",
+  "challenge_attribute": "<the skill/attribute being contested this round, e.g. Tech | Finance | null if not in battle>",
   "my_cards": [
     {{
       "name": "<card name or description>",
       "power": <overall power number or null>,
       "rarity": "<Common|Uncommon|Rare|Epic|Legendary|unknown>",
       "top_skills": ["<skill1>", "<skill2>"],
-      "selected": <true if already chosen for team, false if still available>
+      "challenge_attribute_value": <this card's value in the challenge_attribute, or null>,
+      "selected": <true if already chosen/tapped, false if available>
     }}
   ],
+  "battle_pick_note": "<only during battle: list which 3 cards you are picking and their challenge-attribute values, e.g. 'Picking Alice(Tech=92), Bob(Tech=85), Carol(Tech=78) — highest Tech on team'>",
   "team_selection_note": "<only for team_selection/team_management screens: \
 explain which 5 you are picking and why they cover diverse skill categories>",
   "opponent_visible": "<description of opponent cards/power if visible, else null>",
@@ -299,6 +320,14 @@ def run(coach: bool = False, once: bool = False) -> None:
                 for c in cards
             ]
             print(f"  My cards: {', '.join(card_strs)}")
+
+        challenge = result.get("challenge_attribute")
+        if challenge:
+            print(f"  Challenge: {challenge}")
+
+        battle_note = result.get("battle_pick_note")
+        if battle_note:
+            print(f"  Battle pick: {battle_note}")
 
         note = result.get("team_selection_note")
         if note:
