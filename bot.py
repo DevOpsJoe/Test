@@ -1,14 +1,15 @@
 """
 Corporate Takeover - AI Game Bot
 =================================
-Uses Claude vision to analyze the iPhone screen (via iPhone Mirroring on Mac)
-and automatically play Corporate Takeover (TestFlight build) by tapping moves.
+Uses Claude vision to analyze the game window and automatically play
+Corporate Takeover (TestFlight build running natively on Mac).
 
 Requirements:
-  - macOS Sequoia (15+) with iPhone Mirroring app
-  - iPhone connected and iPhone Mirroring open with Corporate Takeover running
+  - Apple Silicon Mac running the Corporate Takeover TestFlight build natively
   - ANTHROPIC_API_KEY environment variable set
   - pip install -r requirements.txt
+  - Accessibility permission: System Settings → Privacy & Security →
+    Accessibility → enable Terminal (or your Python runner)
 
 Usage:
   python bot.py              # Auto-play mode
@@ -26,23 +27,16 @@ import time
 
 import anthropic
 import pyautogui
-from PIL import Image
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-# iPhone screen dimensions in points — used to map Claude's coordinates
-# onto the iPhone Mirroring window on screen.
-# iPhone 15 / 15 Pro default; adjust if your device differs.
-DEVICE_WIDTH = 393
-DEVICE_HEIGHT = 852
+# The macOS process name for the game. When an iOS/TestFlight app runs
+# natively on Mac this is usually the app's display name.
+APP_NAME = "Corporate Takeover"
 
-# Name of the macOS app used to mirror the iPhone.
-# On macOS Sequoia the built-in app is "iPhone Mirroring".
-MIRROR_APP_NAME = "iPhone Mirroring"
-
-# Seconds to wait after each tap for the UI to settle.
+# Seconds to wait after each click for the UI to settle.
 TAP_SETTLE_DELAY = 1.2
 
 # How many consecutive "no action" frames before the bot warns and pauses.
@@ -145,17 +139,17 @@ NAVIGATION — EXACT BUTTON SEQUENCE:
 """
 
 # ---------------------------------------------------------------------------
-# iPhone Mirroring helpers
+# Game window helpers (native Mac / TestFlight)
 # ---------------------------------------------------------------------------
 
-def _get_mirror_window_bounds() -> tuple[int, int, int, int]:
+def _get_window_bounds() -> tuple[int, int, int, int]:
     """
-    Return (x, y, width, height) of the iPhone Mirroring window in screen
-    coordinates using AppleScript.
+    Return (x, y, width, height) of the game window using AppleScript.
+    Works for any native Mac app, including iOS apps running via TestFlight.
     """
     script = f"""
     tell application "System Events"
-        tell process "{MIRROR_APP_NAME}"
+        tell process "{APP_NAME}"
             set w to front window
             set {{wx, wy}} to position of w
             set {{ww, wh}} to size of w
@@ -172,43 +166,33 @@ def _get_mirror_window_bounds() -> tuple[int, int, int, int]:
     return int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3])
 
 
-def check_mirror() -> tuple[int, int, int, int]:
-    """Verify iPhone Mirroring is running and return its window bounds."""
+def check_app() -> tuple[int, int, int, int]:
+    """Verify the game is running and return its window bounds."""
     try:
-        bounds = _get_mirror_window_bounds()
+        bounds = _get_window_bounds()
     except subprocess.CalledProcessError:
-        print(f'ERROR: "{MIRROR_APP_NAME}" window not found.')
-        print("Steps to fix:")
-        print("  1. Make sure your iPhone is on the same Wi-Fi as your Mac")
-        print("     (or connected via USB).")
-        print('  2. Open "iPhone Mirroring" from the Mac Applications folder.')
-        print("  3. Unlock your iPhone if prompted.")
-        print("  4. Open Corporate Takeover on the mirrored iPhone screen.")
+        print(f'ERROR: "{APP_NAME}" window not found.')
+        print("Make sure Corporate Takeover is open and visible on screen.")
         sys.exit(1)
     return bounds
 
 
-def take_screenshot(bounds: tuple[int, int, int, int]) -> str:
+def take_screenshot(bounds: tuple[int, int, int, int]) -> tuple[str, int, int]:
     """
-    Capture the iPhone Mirroring window and return a base64 PNG string.
-    `bounds` is (x, y, width, height) in Mac screen coordinates.
+    Capture the game window. Returns (base64_png, window_width, window_height).
+    Claude will receive the exact pixel dimensions so no coordinate mapping needed.
     """
     wx, wy, ww, wh = bounds
     img = pyautogui.screenshot(region=(wx, wy, ww, wh))
     buf = io.BytesIO()
     img.save(buf, format="PNG")
-    return base64.standard_b64encode(buf.getvalue()).decode("utf-8")
+    return base64.standard_b64encode(buf.getvalue()).decode("utf-8"), ww, wh
 
 
-def tap(iphone_x: int, iphone_y: int, bounds: tuple[int, int, int, int]) -> None:
-    """
-    Tap at iPhone-space coordinates (iphone_x, iphone_y) by mapping them
-    onto the iPhone Mirroring window position on the Mac screen.
-    """
-    wx, wy, ww, wh = bounds
-    screen_x = wx + int(iphone_x * ww / DEVICE_WIDTH)
-    screen_y = wy + int(iphone_y * wh / DEVICE_HEIGHT)
-    pyautogui.click(screen_x, screen_y)
+def tap(x: int, y: int, bounds: tuple[int, int, int, int]) -> None:
+    """Click at window-relative (x, y) — no coordinate mapping needed."""
+    wx, wy, _ww, _wh = bounds
+    pyautogui.click(wx + x, wy + y)
     time.sleep(TAP_SETTLE_DELAY)
 
 
@@ -217,17 +201,10 @@ def swipe(
     bounds: tuple[int, int, int, int],
     duration: float = 0.4,
 ) -> None:
-    """Swipe from iPhone-space (x1,y1) to (x2,y2) in the mirror window."""
-    wx, wy, ww, wh = bounds
-
-    def map_x(ix: int) -> int:
-        return wx + int(ix * ww / DEVICE_WIDTH)
-
-    def map_y(iy: int) -> int:
-        return wy + int(iy * wh / DEVICE_HEIGHT)
-
-    pyautogui.moveTo(map_x(x1), map_y(y1))
-    pyautogui.dragTo(map_x(x2), map_y(y2), duration=duration, button="left")
+    """Swipe inside the game window using window-relative coordinates."""
+    wx, wy, _ww, _wh = bounds
+    pyautogui.moveTo(wx + x1, wy + y1)
+    pyautogui.dragTo(wx + x2, wy + y2, duration=duration, button="left")
     time.sleep(TAP_SETTLE_DELAY)
 
 # ---------------------------------------------------------------------------
@@ -237,9 +214,10 @@ def swipe(
 ANALYSIS_PROMPT = """\
 {game_context}
 
-The iPhone screen is {width}×{height} points (width × height).
-Top-left of the iPhone screen is (0, 0); bottom-right is ({width}, {height}).
-All coordinates you return must be in iPhone screen space, not Mac screen space.
+The game window in this screenshot is {width}×{height} pixels (width × height).
+Top-left is (0, 0); bottom-right is ({width}, {height}).
+All coordinates you return must be relative to this window — (0,0) is the
+top-left corner of the game window as shown in the screenshot.
 
 Carefully examine the screenshot and respond with ONLY a JSON object — \
 no markdown, no explanation outside the JSON.
@@ -294,12 +272,18 @@ If no action is possible (loading, animation, waiting), set:
 """
 
 
-def decide(client: anthropic.Anthropic, screenshot_b64: str, coach: bool) -> dict:
+def decide(
+    client: anthropic.Anthropic,
+    screenshot_b64: str,
+    win_w: int,
+    win_h: int,
+    coach: bool,
+) -> dict:
     """Ask Claude to analyse the screenshot and return a structured action."""
     prompt = ANALYSIS_PROMPT.format(
         game_context=GAME_CONTEXT,
-        width=DEVICE_WIDTH,
-        height=DEVICE_HEIGHT,
+        width=win_w,
+        height=win_h,
     )
 
     kwargs: dict = dict(
@@ -348,8 +332,8 @@ def run(coach: bool = False, once: bool = False) -> None:
     print(f"Mode: {'COACH (detailed reasoning)' if coach else 'AUTO-PLAY'}")
     print("Press Ctrl+C to stop.\n")
 
-    bounds = check_mirror()
-    print(f"iPhone Mirroring window found at {bounds}\n")
+    bounds = check_app()
+    print(f"Game window found at {bounds}\n")
 
     api_client = anthropic.Anthropic()
     consecutive_waits = 0
@@ -366,11 +350,11 @@ def run(coach: bool = False, once: bool = False) -> None:
             continue
 
         print(f"[Step {step}] Taking screenshot…")
-        screenshot_b64 = take_screenshot(bounds)
+        screenshot_b64, win_w, win_h = take_screenshot(bounds)
 
         print(f"[Step {step}] Asking Claude…")
         try:
-            result = decide(api_client, screenshot_b64, coach=coach)
+            result = decide(api_client, screenshot_b64, win_w, win_h, coach=coach)
         except json.JSONDecodeError as exc:
             print(f"  Could not parse response: {exc}")
             time.sleep(1)
@@ -443,7 +427,7 @@ def run(coach: bool = False, once: bool = False) -> None:
                 f"({consecutive_waits}/{MAX_CONSECUTIVE_WAITS})"
             )
             if consecutive_waits >= MAX_CONSECUTIVE_WAITS:
-                print("\nBot waiting too long — check the iPhone Mirroring window.")
+                print("\nBot waiting too long — check the game window is visible.")
                 break
             time.sleep(2)
         else:
@@ -476,7 +460,7 @@ def run(coach: bool = False, once: bool = False) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="AI bot for Corporate Takeover via iPhone Mirroring on Mac."
+        description="AI bot for Corporate Takeover (TestFlight native Mac build)."
     )
     parser.add_argument(
         "--coach",
