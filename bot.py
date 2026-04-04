@@ -107,21 +107,18 @@ CARD SELECTION STRATEGY (which 3 to pick):
   - Only the relevant attribute matters — ignore overall power for this choice.
   - Tiebreaker: prefer higher-rarity cards (Legendary > Epic > Rare > etc.).
 
-CARD ORDER STRATEGY (how to sequence your 3 picks across rounds):
-  NOTE: In virtual battles the opponent is AI-controlled. Their card values
-  may be visible before you commit — always check before choosing order.
-  - If opponent card values ARE visible:
-      * Match your strongest vs their weakest, middle vs middle — guarantee 2 wins.
-      * If all your cards outclass theirs, sweep 3-0 for maximum XP.
-      * If they are stronger overall, sacrifice your weakest vs their strongest
-        and try to steal 2 rounds with your top 2 cards.
-  - If opponent card values are hidden:
-      * Play STRONGEST first to take an early lead.
-      * Play MEDIUM second to secure the win if round 1 was a loss.
-      * Play WEAKEST last — the match is usually decided by then.
-  - A 2-1 win and a 3-0 win both earn victory XP — a 3-0 may earn a bonus,
-    so go for the sweep when you can.
-  - Never sacrifice a round you could win just to "save" a card.
+CARD SELECTION AND CONFIRMATION:
+  - You NEVER see the opponent's cards before selecting your 3. Selection is
+    always blind — choose purely based on your own cards' attribute values.
+  - After tapping your 3 cards, tap the confirm/start button to begin the battle.
+
+CARD ORDER STRATEGY (blind — opponent cards are never visible upfront):
+  - Always play STRONGEST card first to take an early lead.
+  - Play MEDIUM card second to secure or extend the lead.
+  - Play WEAKEST card last — the match is usually decided by then.
+  - A 2-1 win and a 3-0 win both earn victory XP — a 3-0 sweeps for bonus XP,
+    so lead with your best card every time.
+  - Never hold back a strong card "in reserve" — there are only 3 rounds.
 
 COMPANY STORE — SPENDING ACR ON BOOSTS:
   - The Company Store sells temporary or permanent BOOSTS using ACR tokens.
@@ -284,10 +281,10 @@ xp_reward | corporate_ladder | daily_challenge | loading | unknown>",
   "battle_round": <current round number 1, 2, or 3 — always 3 rounds total in Virtual mode — or null if not in a round>,
   "battle_score": "<score so far e.g. '1-1' or 'You 2 - Opponent 1', or null>",
   "battle_pick_note": "<during card selection: which 3 cards and why, with challenge-attribute values>",
-  "battle_order_note": "<during a round: which card to play NOW and why — e.g. strongest first to secure lead, or counter opponent's visible card>",
+  "battle_order_note": "<during a round: which card to play NOW and why — opponent cards are never visible so always lead strongest → medium → weakest>",
   "team_selection_note": "<only for team_selection/team_management screens: \
 explain which 5 you are picking and why they cover diverse skill categories>",
-  "opponent_visible": "<description of opponent cards/power if visible, else null>",
+  "opponent_visible": null,
   "reasoning": "<step-by-step strategic reasoning for the chosen action>",
   "action": {{
     "type": "<tap|swipe|wait>",
