@@ -48,21 +48,54 @@ MAX_CONSECUTIVE_WAITS = 15
 GAME_CONTEXT = """\
 Corporate Takeover is a collectible card game (CCG) for iPhone set in the corporate world.
 
-Core mechanics:
-- EXECUTIVE CARDS: Each card is a business executive with up to 10 different "business strength"
-  attributes (e.g., Leadership, Finance, Marketing, Operations, Innovation, etc.).
-- RARITY TIERS (weakest → strongest): Common, Uncommon, Rare, Epic, Legendary.
-- TEAM BUILDING: Assemble a team of executive cards to maximise combined strength.
-- COMBAT: Power-based — the player whose team has higher total power in the contested
-  strength category wins the round.
-- RECRUITMENT: Acquire new cards to improve your deck/team.
-- MULTIPLAYER: Real-time matches against other players.
+=== CORE MECHANICS ===
 
-Strategic priorities (high → low):
-1. Win the current battle round — play the card that beats or ties the opponent.
-2. Preserve high-rarity cards for decisive moments.
-3. During recruitment, prefer cards that complement existing team weaknesses.
-4. Manage hand size and card order to keep options open.
+EXECUTIVE CARDS
+  Each card represents a business executive with various skill attributes.
+  Cards have up to 10 different "business strength" categories such as:
+  Leadership, Finance, Marketing, Operations, Innovation, Strategy,
+  Negotiation, Technology, HR, and Sales.
+
+RARITY TIERS (weakest → strongest):
+  Common → Uncommon → Rare → Epic → Legendary
+
+TEAM SELECTION PHASE (happens at the start of each match):
+  - You are shown a roster of available employee/executive cards.
+  - You must SELECT EXACTLY 5 cards to form your battle team.
+  - Each card has different skill attributes and power values.
+  - GOAL: Pick 5 cards with DIVERSE, COMPLEMENTARY skills so you have
+    coverage across many business strength categories.
+  - Avoid picking 5 cards that all excel in the same category —
+    balance is stronger than specialisation.
+  - Prefer higher-rarity cards when skill coverage is equal.
+  - If you can see the opponent's deck hint, counter their strengths.
+
+COMBAT PHASE (after team selection):
+  - Rounds are played one at a time.
+  - Each round, a business strength category is contested.
+  - The player whose team has higher combined power in that category wins.
+  - Win enough rounds to win the match.
+
+TEAM MANAGEMENT (mid-game):
+  - After the initial selection, you CAN keep the same 5 cards for the
+    whole game OR replace individual cards when the opportunity arises.
+  - Replace a card only if the replacement is strictly better:
+    higher rarity, higher power in a category you currently lack, or
+    fixes an obvious weakness in the current team.
+  - Do NOT replace a card just because a new one appears — stability
+    and familiarity with your team's synergies has value.
+
+RECRUITMENT:
+  - Between matches you can recruit new executive cards.
+  - Prefer cards that fill skill gaps in your existing collection.
+
+=== STRATEGIC PRIORITIES ===
+1. TEAM SELECTION: Maximise skill diversity — cover as many of the 10
+   business strength categories as possible with your 5 picks.
+2. Prioritise higher-rarity cards; they usually have higher base power.
+3. In combat, play the card that wins the current contested category.
+4. Preserve Legendary/Epic cards for late-game decisive rounds.
+5. In recruitment, target cards that patch your weakest categories.
 """
 
 # ---------------------------------------------------------------------------
@@ -127,13 +160,21 @@ no explanation outside the JSON.
 
 JSON schema:
 {{
-  "screen": "<name of current screen, e.g. main_menu | recruitment | battle | \
-card_select | result | loading | waiting_for_opponent | unknown>",
+  "screen": "<name of current screen, e.g. main_menu | team_selection | \
+team_management | recruitment | battle | card_play | result | loading | \
+waiting_for_opponent | unknown>",
   "game_state_summary": "<1–3 sentence description of what you see>",
   "my_cards": [
-    {{"name": "<card name or description>", "power": <number or null>, \
-"rarity": "<Common|Uncommon|Rare|Epic|Legendary|unknown>"}}
+    {{
+      "name": "<card name or description>",
+      "power": <overall power number or null>,
+      "rarity": "<Common|Uncommon|Rare|Epic|Legendary|unknown>",
+      "top_skills": ["<skill1>", "<skill2>"],
+      "selected": <true if already chosen for team, false if still available>
+    }}
   ],
+  "team_selection_note": "<only for team_selection/team_management screens: \
+explain which 5 you are picking and why they cover diverse skill categories>",
   "opponent_visible": "<description of opponent cards/power if visible, else null>",
   "reasoning": "<step-by-step strategic reasoning for the chosen action>",
   "action": {{
@@ -254,9 +295,14 @@ def run(coach: bool = False, once: bool = False) -> None:
             card_strs = [
                 f"{c.get('name','?')} [{c.get('rarity','?')}]"
                 + (f" pw:{c['power']}" if c.get("power") else "")
+                + (" ✓" if c.get("selected") else "")
                 for c in cards
             ]
             print(f"  My cards: {', '.join(card_strs)}")
+
+        note = result.get("team_selection_note")
+        if note:
+            print(f"  Team pick: {note}")
 
         opp = result.get("opponent_visible")
         if opp:
