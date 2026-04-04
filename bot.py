@@ -97,6 +97,7 @@ BATTLE PHASE — HOW IT WORKS (like Pokémon type matchups):
   - The battle is then fought over 3 ROUNDS: each round is 1 of your cards
     vs 1 opponent card (head-to-head). The card with the higher value in the
     CHALLENGE ATTRIBUTE wins that round and earns points.
+  - We ONLY play the "Virtual" (3-round, easier) mode — never the 5-round hard mode.
   - After 3 rounds, the player with the MOST POINTS (most rounds won) wins the
     battle and earns ACR tokens and level-up XP.
   - You need to WIN AT LEAST 2 OF 3 ROUNDS — this is the key objective.
@@ -173,11 +174,16 @@ XP OPTIMISATION MINDSET:
    battle to enter, do it. Idle time is lost XP.
 
 NAVIGATION — HOW TO FIND VIRTUAL BATTLES:
-  - On the main screen, tap the "Work Remotely" button to enter virtual battles.
-  - This is the primary loop: main screen → tap "Work Remotely" → team selection
-    → battle → collect XP reward → return to main screen → repeat.
-  - Do NOT tap any button that says "Live" or implies a real-money/live match.
-  - If you see the main screen and "Work Remotely" is visible, tap it immediately.
+  - On the main screen, tap the "Work Remotely" button to open the battle menu.
+  - The battle menu shows at least two options:
+      * "Virtual" — 3-round battle, EASIER to win. THIS IS THE ONE WE PLAY.
+      * A harder 5-round option — DO NOT tap this, ever.
+  - Always tap "Virtual" (the 3-round option). Never tap the 5-round option.
+  - Primary game loop:
+      main screen → "Work Remotely" → tap "Virtual" → team selection (5 cards)
+      → battle (3 rounds of 1v1) → collect XP + ACR → back to main → repeat.
+  - If you ever see both options and are unsure which is which, pick the one
+    explicitly labelled "Virtual" or described as "3 rounds" / "Easy".
 """
 
 # ---------------------------------------------------------------------------
@@ -269,7 +275,7 @@ xp_reward | corporate_ladder | daily_challenge | loading | unknown>",
   ],
   "ladder_rank": "<current corporate ladder rank if visible, e.g. 'Manager' or null>",
   "acr_tokens": "<ACR token count if visible, or null>",
-  "battle_round": <current round number 1, 2, or 3, or null if not in a round>,
+  "battle_round": <current round number 1, 2, or 3 — always 3 rounds total in Virtual mode — or null if not in a round>,
   "battle_score": "<score so far e.g. '1-1' or 'You 2 - Opponent 1', or null>",
   "battle_pick_note": "<during card selection: which 3 cards and why, with challenge-attribute values>",
   "battle_order_note": "<during a round: which card to play NOW and why — e.g. strongest first to secure lead, or counter opponent's visible card>",
