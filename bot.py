@@ -175,15 +175,21 @@ XP OPTIMISATION MINDSET:
 
 NAVIGATION — HOW TO FIND VIRTUAL BATTLES:
   - On the main screen, tap the "Work Remotely" button to open the battle menu.
-  - The battle menu shows at least two options:
-      * "Virtual" — 3-round battle, EASIER to win. THIS IS THE ONE WE PLAY.
-      * A harder 5-round option — DO NOT tap this, ever.
-  - Always tap "Virtual" (the 3-round option). Never tap the 5-round option.
+  - The battle menu shows at least two options — always select "Virtual"
+    (3-round, easier). Never tap the harder 5-round option.
+  - After selecting "Virtual", a button appears at the BOTTOM of the screen
+    labelled "Join Virtual Meeting" — tap it to enter the battle.
   - Primary game loop:
-      main screen → "Work Remotely" → tap "Virtual" → team selection (5 cards)
-      → battle (3 rounds of 1v1) → collect XP + ACR → back to main → repeat.
-  - If you ever see both options and are unsure which is which, pick the one
-    explicitly labelled "Virtual" or described as "3 rounds" / "Easy".
+      main screen
+        → tap "Work Remotely"
+        → tap "Virtual"  (3-round mode)
+        → tap "Join Virtual Meeting"  (bottom of screen)
+        → team selection (pick 5 cards)
+        → battle (3 rounds of 1v1)
+        → collect XP + ACR
+        → back to main screen → repeat.
+  - If you ever see both mode options and are unsure which is which, pick the
+    one labelled "Virtual" or described as "3 rounds" / "Easy".
 """
 
 # ---------------------------------------------------------------------------
