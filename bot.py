@@ -119,19 +119,36 @@ CARD ORDER STRATEGY (how to sequence your 3 picks across rounds):
   - A 2-1 win and a 3-0 win both earn the same victory reward — don't over-invest.
   - Never sacrifice a round you could win just to "save" a card.
 
-REWARDS:
-  - Winning a battle earns ACR tokens (in-game currency) and level-up points.
-  - More decisive wins (3-0) may earn bonus rewards — prioritise clean sweeps
-    when your cards clearly outclass the opponent.
+REWARDS & PROGRESSION — THE META-GOAL:
+  - THE PRIMARY GOAL IS TO ACCUMULATE XP (Experience Points).
+  - XP advances your rank on the CORPORATE LADDER (think promotions:
+    Intern → Associate → Manager → Director → VP → C-Suite, etc.).
+  - Every battle you play earns XP — wins earn significantly more than losses.
+  - ACR tokens are secondary currency used for recruitment / card upgrades.
+  - A 3-0 sweep likely earns more XP than a 2-1 win — go for the clean sweep
+    when your cards clearly dominate.
+  - NEVER skip a battle or quit early — even a loss earns some XP.
+  - XP may also come from: completing daily challenges, recruiting new cards,
+    levelling up individual cards — always look for these bonus XP sources
+    on the screen and prioritise them.
+
+XP OPTIMISATION MINDSET:
+  - Volume matters: play as many battles as possible.
+  - Win rate matters: a stronger team = more wins = faster XP gain.
+  - Invest ACR tokens into recruiting/upgrading cards that improve win rate,
+    which compounds XP earnings over time.
+  - Climbing the corporate ladder may unlock new cards, stronger opponents,
+    and higher XP rewards per battle.
 
 === STRATEGIC PRIORITIES ===
-1. BATTLE CARD ORDER: Sequence your 3 selected cards to guarantee winning 2/3
-   rounds. This is the single most impactful decision each battle.
-2. BATTLE SELECTION: Pick the 3 cards with the highest challenge-attribute value.
-3. TEAM SELECTION: Cover all 10 attribute categories with your 5 cards so you
-   are never outmatched.
-4. Prefer higher-rarity cards when attribute values are equal.
-5. In recruitment, target cards that fill your weakest attribute categories.
+1. MAXIMISE XP PER SESSION — win battles, complete challenges, recruit cards.
+2. BATTLE CARD ORDER: Sequence your 3 cards to guarantee winning 2/3 rounds.
+   A 3-0 sweep earns more XP — go for it when possible.
+3. BATTLE SELECTION: Pick the 3 cards with the highest challenge-attribute value.
+4. TEAM SELECTION: Cover all 10 attribute categories so you win more battles.
+5. SPEND ACR ON RECRUITMENT to improve your team and compound XP gains.
+6. NEVER idle — if there is a button to press, a card to recruit, or a
+   battle to enter, do it. Idle time is lost XP.
 """
 
 # ---------------------------------------------------------------------------
@@ -197,8 +214,8 @@ no explanation outside the JSON.
 JSON schema:
 {{
   "screen": "<name of current screen, e.g. main_menu | team_selection | \
-team_management | recruitment | battle | card_play | result | loading | \
-waiting_for_opponent | unknown>",
+team_management | recruitment | battle | card_play | result | xp_reward | \
+corporate_ladder | daily_challenge | loading | waiting_for_opponent | unknown>",
   "game_state_summary": "<1–3 sentence description of what you see>",
   "challenge_attribute": "<the skill/attribute being contested this round, e.g. Tech | Finance | null if not in battle>",
   "my_cards": [
@@ -211,6 +228,9 @@ waiting_for_opponent | unknown>",
       "selected": <true if already chosen/tapped, false if available>
     }}
   ],
+  "xp_visible": "<XP bar or amount shown on screen, e.g. '1240/2000 XP' or null>",
+  "ladder_rank": "<current corporate ladder rank if visible, e.g. 'Manager' or null>",
+  "acr_tokens": "<ACR token count if visible, or null>",
   "battle_round": <current round number 1, 2, or 3, or null if not in a round>,
   "battle_score": "<score so far e.g. '1-1' or 'You 2 - Opponent 1', or null>",
   "battle_pick_note": "<during card selection: which 3 cards and why, with challenge-attribute values>",
@@ -328,6 +348,20 @@ def run(coach: bool = False, once: bool = False) -> None:
         # ---- Print state summary ----------------------------------------
         print(f"  Screen  : {result.get('screen', '?')}")
         print(f"  State   : {result.get('game_state_summary', '?')}")
+
+        # XP / ladder progress
+        rank = result.get("ladder_rank")
+        xp = result.get("xp_visible")
+        acr = result.get("acr_tokens")
+        progress_parts = []
+        if rank:
+            progress_parts.append(f"Rank: {rank}")
+        if xp:
+            progress_parts.append(f"XP: {xp}")
+        if acr:
+            progress_parts.append(f"ACR: {acr}")
+        if progress_parts:
+            print(f"  Progress: {' | '.join(progress_parts)}")
 
         if coach:
             print(f"  Thinking: {result.get('reasoning', '')}")
