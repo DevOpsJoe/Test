@@ -107,16 +107,19 @@ CARD SELECTION STRATEGY (which 3 to pick):
   - Tiebreaker: prefer higher-rarity cards (Legendary > Epic > Rare > etc.).
 
 CARD ORDER STRATEGY (how to sequence your 3 picks across rounds):
-  - If you can see opponent card values BEFORE choosing order:
-      * "Secure the win" approach: match your strongest card against their
-        weakest, your middle vs their middle, sacrifice your weakest vs their
-        strongest. Goal: guarantee 2 wins.
-      * If all 3 of your cards beat all 3 of theirs, play in any order.
-  - If opponent cards are hidden:
+  NOTE: In virtual battles the opponent is AI-controlled. Their card values
+  may be visible before you commit — always check before choosing order.
+  - If opponent card values ARE visible:
+      * Match your strongest vs their weakest, middle vs middle — guarantee 2 wins.
+      * If all your cards outclass theirs, sweep 3-0 for maximum XP.
+      * If they are stronger overall, sacrifice your weakest vs their strongest
+        and try to steal 2 rounds with your top 2 cards.
+  - If opponent card values are hidden:
       * Play STRONGEST first to take an early lead.
-      * Save MEDIUM card for round 2 (opponent may play their strongest early).
-      * Accept potential round 3 loss with weakest card if you are already 2-0.
-  - A 2-1 win and a 3-0 win both earn the same victory reward — don't over-invest.
+      * Play MEDIUM second to secure the win if round 1 was a loss.
+      * Play WEAKEST last — the match is usually decided by then.
+  - A 2-1 win and a 3-0 win both earn victory XP — a 3-0 may earn a bonus,
+    so go for the sweep when you can.
   - Never sacrifice a round you could win just to "save" a card.
 
 COMPANY STORE — SPENDING ACR ON BOOSTS:
@@ -168,6 +171,13 @@ XP OPTIMISATION MINDSET:
 5. SPEND ACR WISELY between the Company Store (boosts) and recruitment.
 6. NEVER idle — if there is a button to press, a card to recruit, or a
    battle to enter, do it. Idle time is lost XP.
+
+NAVIGATION — HOW TO FIND VIRTUAL BATTLES:
+  - On the main screen, tap the "Work Remotely" button to enter virtual battles.
+  - This is the primary loop: main screen → tap "Work Remotely" → team selection
+    → battle → collect XP reward → return to main screen → repeat.
+  - Do NOT tap any button that says "Live" or implies a real-money/live match.
+  - If you see the main screen and "Work Remotely" is visible, tap it immediately.
 """
 
 # ---------------------------------------------------------------------------
@@ -234,7 +244,7 @@ JSON schema:
 {{
   "screen": "<name of current screen, e.g. main_menu | team_selection | \
 team_management | company_store | recruitment | battle | card_play | result | \
-xp_reward | corporate_ladder | daily_challenge | loading | waiting_for_opponent | unknown>",
+xp_reward | corporate_ladder | daily_challenge | loading | unknown>",
   "game_state_summary": "<1–3 sentence description of what you see>",
   "challenge_attribute": "<the skill/attribute being contested this round, e.g. Tech | Finance | null if not in battle>",
   "my_cards": [
