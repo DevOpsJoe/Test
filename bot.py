@@ -183,8 +183,9 @@ NAVIGATION — HOW TO FIND VIRTUAL BATTLES:
         → tap "Join Virtual Meeting"  (bottom of screen)
         → team selection (pick 5 cards)
         → battle (3 rounds of 1v1)
-        → collect XP + ACR
-        → back to main screen → repeat.
+        → collect XP + ACR reward
+        → tap "Back to Office"  (returns to main screen)
+        → repeat indefinitely.
   - If you ever see both mode options and are unsure which is which, pick the
     one labelled "Virtual" or described as "3 rounds" / "Easy".
 """
@@ -253,7 +254,7 @@ JSON schema:
 {{
   "screen": "<name of current screen, e.g. main_menu | team_selection | \
 team_management | company_store | recruitment | battle | card_play | result | \
-xp_reward | corporate_ladder | daily_challenge | loading | unknown>",
+xp_reward | post_battle | corporate_ladder | daily_challenge | loading | unknown>",
   "game_state_summary": "<1–3 sentence description of what you see>",
   "challenge_attribute": "<the skill/attribute being contested this round, e.g. Tech | Finance | null if not in battle>",
   "my_cards": [
