@@ -90,29 +90,47 @@ RECRUITMENT:
   - Prefer cards that fill skill gaps in your existing collection.
 
 BATTLE PHASE — HOW IT WORKS (like Pokémon type matchups):
-  - Each battle round presents a CHALLENGE ATTRIBUTE (e.g. "Tech", "Finance",
+  - Each battle challenge names a CHALLENGE ATTRIBUTE (e.g. "Tech", "Finance",
     "Leadership", "Marketing", "Operations", "Innovation", "Strategy",
     "Negotiation", "HR", "Sales").
-  - From your team of 5, you SELECT EXACTLY 3 CARDS to send into that battle.
-  - The 3 cards you pick compete against the opponent's 3 cards.
-  - Higher combined (or individual) power in the CHALLENGE ATTRIBUTE wins.
-  - STRATEGY: always pick the 3 cards that have the highest value in the
-    specific attribute being challenged. Ignore overall power — only the
-    relevant attribute matters for this round.
-  - If two cards tie on the challenge attribute, prefer the higher-rarity one
-    as a tiebreaker (it likely has higher secondary stats).
-  - You cannot use the same card in consecutive rounds (if that rule applies —
-    adapt once you can see the UI).
+  - From your team of 5, you SELECT EXACTLY 3 CARDS to field for this challenge.
+  - The battle is then fought over 3 ROUNDS: each round is 1 of your cards
+    vs 1 opponent card (head-to-head). The card with the higher value in the
+    CHALLENGE ATTRIBUTE wins that round and earns points.
+  - After 3 rounds, the player with the MOST POINTS (most rounds won) wins the
+    battle and earns ACR tokens and level-up XP.
+  - You need to WIN AT LEAST 2 OF 3 ROUNDS — this is the key objective.
+
+CARD SELECTION STRATEGY (which 3 to pick):
+  - Always pick the 3 cards with the highest value in the CHALLENGE ATTRIBUTE.
+  - Only the relevant attribute matters — ignore overall power for this choice.
+  - Tiebreaker: prefer higher-rarity cards (Legendary > Epic > Rare > etc.).
+
+CARD ORDER STRATEGY (how to sequence your 3 picks across rounds):
+  - If you can see opponent card values BEFORE choosing order:
+      * "Secure the win" approach: match your strongest card against their
+        weakest, your middle vs their middle, sacrifice your weakest vs their
+        strongest. Goal: guarantee 2 wins.
+      * If all 3 of your cards beat all 3 of theirs, play in any order.
+  - If opponent cards are hidden:
+      * Play STRONGEST first to take an early lead.
+      * Save MEDIUM card for round 2 (opponent may play their strongest early).
+      * Accept potential round 3 loss with weakest card if you are already 2-0.
+  - A 2-1 win and a 3-0 win both earn the same victory reward — don't over-invest.
+  - Never sacrifice a round you could win just to "save" a card.
+
+REWARDS:
+  - Winning a battle earns ACR tokens (in-game currency) and level-up points.
+  - More decisive wins (3-0) may earn bonus rewards — prioritise clean sweeps
+    when your cards clearly outclass the opponent.
 
 === STRATEGIC PRIORITIES ===
-1. BATTLE SELECTION: Identify the challenge attribute, then rank your 5 cards
-   by that attribute's value and send the top 3. This is the most important
-   decision in the game.
-2. TEAM SELECTION: Pick 5 cards that cover all 10 attribute categories so you
-   are never completely outmatched on any challenge.
-3. Prefer higher-rarity cards when attribute values are equal.
-4. Save Legendary/Epic cards — if you can choose which to hold back, keep
-   your best card in reserve for the hardest challenge.
+1. BATTLE CARD ORDER: Sequence your 3 selected cards to guarantee winning 2/3
+   rounds. This is the single most impactful decision each battle.
+2. BATTLE SELECTION: Pick the 3 cards with the highest challenge-attribute value.
+3. TEAM SELECTION: Cover all 10 attribute categories with your 5 cards so you
+   are never outmatched.
+4. Prefer higher-rarity cards when attribute values are equal.
 5. In recruitment, target cards that fill your weakest attribute categories.
 """
 
@@ -193,7 +211,10 @@ waiting_for_opponent | unknown>",
       "selected": <true if already chosen/tapped, false if available>
     }}
   ],
-  "battle_pick_note": "<only during battle: list which 3 cards you are picking and their challenge-attribute values, e.g. 'Picking Alice(Tech=92), Bob(Tech=85), Carol(Tech=78) — highest Tech on team'>",
+  "battle_round": <current round number 1, 2, or 3, or null if not in a round>,
+  "battle_score": "<score so far e.g. '1-1' or 'You 2 - Opponent 1', or null>",
+  "battle_pick_note": "<during card selection: which 3 cards and why, with challenge-attribute values>",
+  "battle_order_note": "<during a round: which card to play NOW and why — e.g. strongest first to secure lead, or counter opponent's visible card>",
   "team_selection_note": "<only for team_selection/team_management screens: \
 explain which 5 you are picking and why they cover diverse skill categories>",
   "opponent_visible": "<description of opponent cards/power if visible, else null>",
@@ -323,11 +344,22 @@ def run(coach: bool = False, once: bool = False) -> None:
 
         challenge = result.get("challenge_attribute")
         if challenge:
-            print(f"  Challenge: {challenge}")
+            rnd = result.get("battle_round")
+            score = result.get("battle_score")
+            suffix = ""
+            if rnd:
+                suffix += f"  Round {rnd}/3"
+            if score:
+                suffix += f"  Score: {score}"
+            print(f"  Challenge: {challenge}{suffix}")
 
         battle_note = result.get("battle_pick_note")
         if battle_note:
             print(f"  Battle pick: {battle_note}")
+
+        order_note = result.get("battle_order_note")
+        if order_note:
+            print(f"  Card order: {order_note}")
 
         note = result.get("team_selection_note")
         if note:
