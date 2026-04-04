@@ -119,12 +119,31 @@ CARD ORDER STRATEGY (how to sequence your 3 picks across rounds):
   - A 2-1 win and a 3-0 win both earn the same victory reward — don't over-invest.
   - Never sacrifice a round you could win just to "save" a card.
 
+COMPANY STORE — SPENDING ACR ON BOOSTS:
+  - The Company Store sells temporary or permanent BOOSTS using ACR tokens.
+  - Example boost: "Coffee Run" costs 65 ACR and gives the whole team +10% power.
+  - Boosts directly increase battle win rate → more XP per hour.
+
+  BOOST BUYING RULES:
+  1. Calculate value: a +10% power boost for 65 ACR is good value if it flips
+     close losses into wins. Estimate how many extra wins it buys.
+  2. Buy boosts BEFORE entering a battle, not after losing — timing matters.
+  3. Prefer TEAM-WIDE boosts (affect all 3 battle cards) over single-card boosts.
+  4. Stack boosts when facing a tough opponent or a challenge attribute where
+     your team is weaker than usual.
+  5. Keep a reserve of ~100 ACR at all times for emergency boosts mid-session.
+  6. Do NOT spend all ACR on boosts if you are close to affording a new
+     high-rarity card in recruitment — permanent card upgrades outvalue
+     temporary boosts in the long run.
+  7. If a boost is cheap (≤50 ACR) and improves a stat you use often, buy it.
+  8. Re-read store items each visit — inventory may rotate.
+
 REWARDS & PROGRESSION — THE META-GOAL:
   - THE PRIMARY GOAL IS TO ACCUMULATE XP (Experience Points).
   - XP advances your rank on the CORPORATE LADDER (think promotions:
     Intern → Associate → Manager → Director → VP → C-Suite, etc.).
   - Every battle you play earns XP — wins earn significantly more than losses.
-  - ACR tokens are secondary currency used for recruitment / card upgrades.
+  - ACR tokens are currency spent in the COMPANY STORE or on recruitment.
   - A 3-0 sweep likely earns more XP than a 2-1 win — go for the clean sweep
     when your cards clearly dominate.
   - NEVER skip a battle or quit early — even a loss earns some XP.
@@ -135,8 +154,8 @@ REWARDS & PROGRESSION — THE META-GOAL:
 XP OPTIMISATION MINDSET:
   - Volume matters: play as many battles as possible.
   - Win rate matters: a stronger team = more wins = faster XP gain.
-  - Invest ACR tokens into recruiting/upgrading cards that improve win rate,
-    which compounds XP earnings over time.
+  - Invest ACR tokens wisely between the COMPANY STORE (boosts) and
+    RECRUITMENT (new cards) — both improve win rate and compound XP earnings.
   - Climbing the corporate ladder may unlock new cards, stronger opponents,
     and higher XP rewards per battle.
 
@@ -146,7 +165,7 @@ XP OPTIMISATION MINDSET:
    A 3-0 sweep earns more XP — go for it when possible.
 3. BATTLE SELECTION: Pick the 3 cards with the highest challenge-attribute value.
 4. TEAM SELECTION: Cover all 10 attribute categories so you win more battles.
-5. SPEND ACR ON RECRUITMENT to improve your team and compound XP gains.
+5. SPEND ACR WISELY between the Company Store (boosts) and recruitment.
 6. NEVER idle — if there is a button to press, a card to recruit, or a
    battle to enter, do it. Idle time is lost XP.
 """
@@ -214,8 +233,8 @@ no explanation outside the JSON.
 JSON schema:
 {{
   "screen": "<name of current screen, e.g. main_menu | team_selection | \
-team_management | recruitment | battle | card_play | result | xp_reward | \
-corporate_ladder | daily_challenge | loading | waiting_for_opponent | unknown>",
+team_management | company_store | recruitment | battle | card_play | result | \
+xp_reward | corporate_ladder | daily_challenge | loading | waiting_for_opponent | unknown>",
   "game_state_summary": "<1–3 sentence description of what you see>",
   "challenge_attribute": "<the skill/attribute being contested this round, e.g. Tech | Finance | null if not in battle>",
   "my_cards": [
@@ -229,6 +248,15 @@ corporate_ladder | daily_challenge | loading | waiting_for_opponent | unknown>",
     }}
   ],
   "xp_visible": "<XP bar or amount shown on screen, e.g. '1240/2000 XP' or null>",
+  "store_items": [
+    {{
+      "name": "<boost name>",
+      "cost_acr": <integer ACR cost>,
+      "effect": "<description of what it does>",
+      "buy_recommendation": "<buy_now | save_acr | skip>",
+      "buy_reason": "<one sentence why>"
+    }}
+  ],
   "ladder_rank": "<current corporate ladder rank if visible, e.g. 'Manager' or null>",
   "acr_tokens": "<ACR token count if visible, or null>",
   "battle_round": <current round number 1, 2, or 3, or null if not in a round>,
@@ -394,6 +422,15 @@ def run(coach: bool = False, once: bool = False) -> None:
         order_note = result.get("battle_order_note")
         if order_note:
             print(f"  Card order: {order_note}")
+
+        for item in result.get("store_items") or []:
+            rec = item.get("buy_recommendation", "?")
+            symbol = {"buy_now": "✓", "save_acr": "~", "skip": "✗"}.get(rec, "?")
+            print(
+                f"  Store [{symbol}] {item.get('name')} "
+                f"{item.get('cost_acr')} ACR — {item.get('effect')} "
+                f"({item.get('buy_reason')})"
+            )
 
         note = result.get("team_selection_note")
         if note:
